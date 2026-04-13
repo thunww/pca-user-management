@@ -1,26 +1,38 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "type": "module",
-  "main": "src/app.js",
+  "description": "User Management Backend API - Node.js + Express + Prisma + MySQL",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
-    "migrate": "node src/database/migrations/001_create_users_table.js",
-    "seed": "node src/database/seeders/001_seed_users.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate": "prisma migrate dev",
+    "generate": "prisma generate",
+    "seed": "prisma db seed"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "nodejs",
+    "express",
+    "prisma",
+    "mysql",
+    "user-management",
+    "api"
+  ],
+  "author": "Gia Than",
   "license": "ISC",
-  "description": "",
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "express-validator": "^7.3.2",
-    "mysql2": "^3.22.0"
+    "joi": "^18.1.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "prisma": "^5.22.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }
