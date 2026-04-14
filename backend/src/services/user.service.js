@@ -23,8 +23,15 @@ const createUser = async (data) => {
   }
 };
 
-const getUsers = (page, limit) =>
-  userRepo.getUsers(Number(page), Number(limit));
+const getUsers = async (page, limit, sortBy, sortOrder, search) => {
+  return await userRepo.getUsers(
+    Number(page),
+    Number(limit),
+    sortBy,
+    sortOrder,
+    search,
+  );
+};
 
 const deleteUser = async (id) => {
   const user = await userRepo.findById(id);

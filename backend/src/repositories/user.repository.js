@@ -6,39 +6,51 @@ const findByEmail = (email) => prisma.user.findUnique({ where: { email } });
 
 const findById = (id) => prisma.user.findUnique({ where: { id } });
 
-const getUsers = (page, limit) =>
-  prisma.user.findMany({
-    where: { deleted: false },
-    skip: (page - 1) * limit,
-    take: limit,
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-      createdAt: true,
-    },
-  });
+const getUsers = async (
+  page,
+  limit,
+  sortBy = "createdAt",
+  sortOrder = "desc",
+  search = "",
+) => {
+  const where = {
+    deleted: false,
+    ...(search && {
+      OR: [
+        { firstName: { contains: search } },
+        { lastName: { contains: search } },
+        { email: { contains: search } },
+      ],
+    }),
+  };
+
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { [sortBy]: sortOrder },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        createdAt: true,
+      },
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return { users, total };
+};
 
 const softDelete = (id) =>
-  prisma.user.update({
-    where: { id },
-    data: { deleted: true },
-  });
+  prisma.user.update({ where: { id }, data: { deleted: true } });
 
 const getUsersByIds = (ids) =>
   prisma.user.findMany({
-    where: {
-      id: { in: ids },
-      deleted: false,
-    },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-    },
+    where: { id: { in: ids }, deleted: false },
+    select: { id: true, email: true, firstName: true, lastName: true },
   });
 
 module.exports = {

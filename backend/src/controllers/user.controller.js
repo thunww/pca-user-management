@@ -10,9 +10,23 @@ const createUser = asyncHandler(async (req, res) => {
 });
 
 const getUsers = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
-  const users = await userService.getUsers(page, limit);
-  return sendSuccess(res, users);
+  const {
+    page = 1,
+    limit = 10,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    search = "",
+  } = req.query;
+
+  const { users, total } = await userService.getUsers(
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+    search,
+  );
+
+  return sendSuccess(res, { users, total });
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
