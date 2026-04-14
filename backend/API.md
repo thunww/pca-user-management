@@ -2,27 +2,47 @@
 
 Base URL: `http://localhost:5000/api`
 
+All successful responses follow this structure:
+
+```json
+{
+  "success": true,
+  "message": "OK",
+  "data": {}
+}
+```
+
+All error responses follow this structure:
+
+```json
+{
+  "success": false,
+  "message": "Error description"
+}
+```
+
 ---
 
 ## GET /users
 
-Retrieve paginated list of users.
+Retrieve a paginated list of users.
 
 **Query Parameters**
 
-| Param     | Type   | Default   | Description                              |
-| --------- | ------ | --------- | ---------------------------------------- |
-| page      | number | 1         | Page number                              |
-| limit     | number | 10        | Items per page                           |
-| sortBy    | string | createdAt | firstName / lastName / email / createdAt |
-| sortOrder | string | desc      | asc / desc                               |
-| search    | string | ""        | Search firstName, lastName, email        |
+| Param     | Type   | Default     | Description                                                  |
+| --------- | ------ | ----------- | ------------------------------------------------------------ |
+| page      | number | 1           | Page number                                                  |
+| limit     | number | 10          | Items per page                                               |
+| sortBy    | string | `createdAt` | Sort field: `firstName` / `lastName` / `email` / `createdAt` |
+| sortOrder | string | `desc`      | Sort direction: `asc` / `desc`                               |
+| search    | string | `""`        | Search across `firstName`, `lastName`, `email`               |
 
 **Response 200**
 
 ```json
 {
   "success": true,
+  "message": "OK",
   "data": {
     "users": [
       {
@@ -37,6 +57,12 @@ Retrieve paginated list of users.
   }
 }
 ```
+
+**Error Responses**
+
+| Status | Message      | Reason                  |
+| ------ | ------------ | ----------------------- |
+| 500    | Server error | Unexpected server error |
 
 ---
 
@@ -57,10 +83,12 @@ Create a new user.
 
 **Validation Rules**
 
-- `email`: required, valid email format
-- `firstName`: required, string
-- `lastName`: required, string
-- `password`: required, min 6 chars, at least 1 uppercase, at least 1 number
+| Field       | Rules                                                                      |
+| ----------- | -------------------------------------------------------------------------- |
+| `email`     | Required, valid email format                                               |
+| `firstName` | Required, string                                                           |
+| `lastName`  | Required, string                                                           |
+| `password`  | Required, min 6 characters, at least 1 uppercase letter, at least 1 number |
 
 **Response 201**
 
@@ -80,17 +108,32 @@ Create a new user.
 
 **Error Responses**
 
-| Status | Reason               |
-| ------ | -------------------- |
-| 400    | Validation failed    |
-| 400    | Email already exists |
-| 500    | Server error         |
+| Status | Message              | Reason                        |
+| ------ | -------------------- | ----------------------------- |
+| 400    | Validation failed    | Request body fails validation |
+| 400    | Email already exists | Email is already registered   |
+| 500    | Server error         | Unexpected server error       |
+
+**Error Response Example**
+
+```json
+{
+  "success": false,
+  "message": "Email already exists"
+}
+```
 
 ---
 
 ## DELETE /users/:id
 
-Soft delete a user by ID.
+Soft delete a user by ID. The user record is preserved in the database with `deleted = true` and will no longer appear in the user list.
+
+**Path Parameters**
+
+| Param | Type   | Description      |
+| ----- | ------ | ---------------- |
+| `id`  | string | UUID of the user |
 
 **Response 200**
 
@@ -104,18 +147,31 @@ Soft delete a user by ID.
 
 **Error Responses**
 
-| Status | Reason         |
-| ------ | -------------- |
-| 404    | User not found |
-| 500    | Server error   |
+| Status | Message        | Reason                    |
+| ------ | -------------- | ------------------------- |
+| 404    | User not found | No user with the given ID |
+| 500    | Server error   | Unexpected server error   |
+
+**Error Response Example**
+
+```json
+{
+  "success": false,
+  "message": "User not found"
+}
+```
 
 ---
 
 ## POST /users/export
 
-Export selected users as CSV file.
+Export selected users as a CSV file download.
 
 **Request Body**
+
+| Field | Type            | Rules                                |
+| ----- | --------------- | ------------------------------------ |
+| `ids` | array of string | Required, must contain at least 1 ID |
 
 ```json
 {
@@ -125,9 +181,14 @@ Export selected users as CSV file.
 
 **Response 200**
 
-Returns a CSV file download.
+Returns a CSV file (`users.csv`) as a file download.
 
 ```
+Content-Type: text/csv
+Content-Disposition: attachment; filename="users.csv"
+```
+
+```csv
 id,email,first_name,last_name
 uuid1,john@example.com,John,Doe
 uuid2,jane@example.com,Jane,Smith
@@ -135,8 +196,17 @@ uuid2,jane@example.com,Jane,Smith
 
 **Error Responses**
 
-| Status | Reason               |
-| ------ | -------------------- |
-| 400    | ids array is empty   |
-| 404    | No valid users found |
-| 500    | Server error         |
+| Status | Message              | Reason                              |
+| ------ | -------------------- | ----------------------------------- |
+| 400    | ids array is empty   | `ids` field is missing or empty     |
+| 404    | No valid users found | None of the provided IDs were found |
+| 500    | Server error         | Unexpected server error             |
+
+**Error Response Example**
+
+```json
+{
+  "success": false,
+  "message": "ids array is empty"
+}
+```
